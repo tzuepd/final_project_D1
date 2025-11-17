@@ -5,17 +5,19 @@
 #include <SerialFlash.h>
 
 // GUItool: begin automatically generated code
-AudioInputI2S            i2s1;           //xy=186,246
-AudioAmplifier           amp1;           //xy=369,307
-AudioFilterStateVariable filter1;        //xy=540,306
-AudioOutputI2S           i2s2;           //xy=727,245
-AudioConnection          patchCord1(i2s1, 0, amp1, 0);
-AudioConnection          patchCord2(i2s1, 1, amp1, 0);
-AudioConnection          patchCord3(amp1, 0, filter1, 0);
-AudioConnection          patchCord4(filter1, 0, i2s2, 0);
-AudioConnection          patchCord5(filter1, 0, i2s2, 1);
-AudioControlSGTL5000     sgtl5000_1;     //xy=461,458
+AudioInputI2S i2s1;                //xy=186,246
+AudioAmplifier amp1;               //xy=369,307
+AudioFilterStateVariable filter1;  //xy=540,306
+AudioOutputI2S i2s2;               //xy=727,245
+AudioConnection patchCord1(i2s1, 0, amp1, 0);
+AudioConnection patchCord2(i2s1, 1, amp1, 0);
+AudioConnection patchCord3(amp1, 0, filter1, 0);
+AudioConnection patchCord4(filter1, 0, i2s2, 0);
+AudioConnection patchCord5(filter1, 0, i2s2, 1);
+AudioControlSGTL5000 sgtl5000_1;  //xy=461,458
 // GUItool: end automatically generated code
+
+int filterPod = A13;
 
 void setup() {
   AudioMemory(12);
@@ -23,15 +25,17 @@ void setup() {
   sgtl5000_1.volume(0.5);
   sgtl5000_1.inputSelect(AUDIO_INPUT_MIC);
   amp1.gain(0.2);
+  Serial.begin(9600);
 }
 
 void loop() {
-  filter1.frequency(200);
-  delay(200);
-  filter1.frequency(2000);
-  delay(200);
-  filter1.frequency(200);
-  delay(200);
-  filter1.frequency(2000);
-  delay(200);
+
+  int filterControl = analogRead(filterPod);
+
+  int cutoff = map(filterControl, 0, 1023, 150, 5500);
+
+  filter1.frequency(cutoff);
+
+  delay(5); 
 }
+
