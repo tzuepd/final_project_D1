@@ -27,8 +27,8 @@ AudioConnection patchCord5(filter1, 0, i2s2, 1);
 AudioControlSGTL5000 sgtl5000_1;  //xy=461,458
 // GUItool: end automatically generated code
 
-int filterPod = A11;
-int volumePod = A12;
+int filterPod = A12;
+int volumePod = A11;
 
 void setup() {
   AudioMemory(12);
