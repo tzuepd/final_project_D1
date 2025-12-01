@@ -50,24 +50,14 @@ void setup() {
 void loop() {
   lowPassFilter();
   //volumeManager();
-  //testdrawstyles();
 }
 
 void lowPassFilter() {
   int filterControl = analogRead(filterPod);
-  int cutoff = map(filterControl, 0, 1023, 150, 3000);
+  int cutoff = map(filterControl, 0, 1023, 100, 4500);
   filter1.frequency(cutoff);
   delay(5);
 
-
-  // void volumeManager() {
-  //   int volume = analogRead(volumePod);
-  //   int level = map(volume, 0, 1023, 0, 800) / 1000.0;
-  //  sgtl5000_1.volume(volumePod);
-  //  delay(5);
-  // }
-
-  //void testdrawstyles(void) {
   display.clearDisplay();
 
   display.setTextSize(3);     // Normal 1:1 pixel scale
@@ -78,5 +68,12 @@ void lowPassFilter() {
   display.print(F("Hz"));
 
   display.display();
-  delay(2000);
+  // delay(500);
 }
+
+// void volumeManager() {
+  //   int volume = analogRead(volumePod);
+  //   int level = map(volume, 0, 1023, 0, 800) / 1000.0;
+  //  sgtl5000_1.volume(volumePod);
+  //  delay(5);
+  // }
