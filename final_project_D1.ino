@@ -28,7 +28,8 @@ AudioControlSGTL5000 sgtl5000_1;  //xy=461,458
 // GUItool: end automatically generated code
 
 int filterPod = A12;
-int volumePod = A11;
+int onOffSwitch = 25;
+bool wasOn = false;
 
 void setup() {
   AudioMemory(12);
@@ -37,43 +38,93 @@ void setup() {
   sgtl5000_1.inputSelect(AUDIO_INPUT_MIC);
   sgtl5000_1.micGain(55);
   amp1.gain(0.2);
+
   Serial.begin(9600);
 
-  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
     for (;;)
-      ;  // Don't proceed, loop forever
+      ;
   }
+
+  pinMode(onOffSwitch, INPUT);
 }
 
 void loop() {
-  lowPassFilter();
-  //volumeManager();
+  int switchState = digitalRead(onOffSwitch);
+
+  if (switchState == LOW) {
+    // SWITCH IS ON
+    if (!wasOn) {
+      startupTransition();  // run ONCE when switching ON
+      wasOn = true;
+    }
+    lowPassFilter();
+
+  } else {
+    // SWITCH IS OFF
+    wasOn = false; // reset
+    displayOffScreen();
+    filter1.frequency(0);
+    amp1.gain(0);
+  }
 }
 
 void lowPassFilter() {
   int filterControl = analogRead(filterPod);
   int cutoff = map(filterControl, 0, 1023, 100, 4500);
   filter1.frequency(cutoff);
-  delay(5);
+  amp1.gain(0.2);  // restore gain when ON
 
   display.clearDisplay();
-
-  display.setTextSize(3);     // Normal 1:1 pixel scale
-  display.setCursor(10, 20);  // Start at top-left corner
+  display.setTextSize(3);
+  display.setCursor(10, 20);
   display.setTextColor(SSD1306_WHITE);
   display.print(cutoff);
-  display.setTextColor(SSD1306_WHITE);
   display.print(F("Hz"));
-
   display.display();
-  // delay(500);
+
+  delay(5);
 }
 
-// void volumeManager() {
-  //   int volume = analogRead(volumePod);
-  //   int level = map(volume, 0, 1023, 0, 800) / 1000.0;
-  //  sgtl5000_1.volume(volumePod);
-  //  delay(5);
-  // }
+void displayOffScreen() {
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setCursor(10, 25);
+  display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);
+  display.println("SkullFltr");
+  display.display();
+}
+
+void startupTransition() {
+
+  // --- Line animation first ---
+  for (int i = 0; i < max(display.width(), display.height()); i += 4) {
+    display.clearDisplay();
+
+    // top-left corner
+    display.drawLine(0, 0, i, display.height() - 1, SSD1306_WHITE);
+    display.drawLine(0, 0, display.width() - 1, i, SSD1306_WHITE);
+
+    // bottom-left
+    display.drawLine(0, display.height() - 1, i, 0, SSD1306_WHITE);
+    display.drawLine(0, display.height() - 1, display.width() - 1, display.height() - 1 - i, SSD1306_WHITE);
+
+    // top-right
+    display.drawLine(display.width() - 1, 0, display.width() - 1 - i, display.height() - 1, SSD1306_WHITE);
+    display.drawLine(display.width() - 1, 0, 0, i, SSD1306_WHITE);
+
+    // bottom-right
+    display.drawLine(display.width() - 1, display.height() - 1, display.width() - 1 - i, 0, SSD1306_WHITE);
+    display.drawLine(display.width() - 1, display.height() - 1, 0, display.height() - 1 - i, SSD1306_WHITE);
+
+    display.display();
+    delay(35);
+  }
+
+  //blank screen AFTER animation
+  display.clearDisplay();
+  display.display();
+  delay(500);
+}
+
